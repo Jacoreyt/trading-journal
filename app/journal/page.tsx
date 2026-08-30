@@ -2,6 +2,17 @@ import Link from "next/link";
 import { getTrades } from "@/lib/trades/queries";
 import { EnvironmentToggle } from "@/components/environment-toggle";
 import { parseEnvironmentFilter } from "@/lib/environment-filter";
+import type { Trade } from "@/lib/supabase/types";
+
+function percentPnl(trade: Trade): number | null {
+  if (trade.exit_price === null) return null;
+  const direction = trade.side === "long" ? 1 : -1;
+  return ((trade.exit_price - trade.entry_price) / trade.entry_price) * 100 * direction;
+}
+
+function formatPrice(price: number): string {
+  return price.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 5 });
+}
 
 export default async function JournalPage({
   searchParams,
@@ -52,49 +63,56 @@ export default async function JournalPage({
         </p>
       ) : (
         <ul className="divide-y divide-neutral-200 dark:divide-neutral-800">
-          {trades.map((trade) => (
-            <li key={trade.id}>
-              <Link
-                href={`/journal/${trade.id}`}
-                className="flex items-center justify-between py-3 text-sm hover:opacity-70"
-              >
-                <div className="flex items-center gap-3">
-                  <span className="font-medium">{trade.symbol}</span>
-                  <span className="text-neutral-500">
-                    {trade.side} · {trade.quantity}
-                  </span>
-                  {trade.environment === "demo" && (
-                    <span className="rounded-full bg-amber-100 px-2 py-0.5 text-xs text-amber-700 dark:bg-amber-900/40 dark:text-amber-400">
-                      demo
-                    </span>
-                  )}
-                  {trade.strategy && (
-                    <span className="rounded-full bg-neutral-100 px-2 py-0.5 text-xs text-neutral-600 dark:bg-neutral-800 dark:text-neutral-300">
-                      {trade.strategy}
-                    </span>
-                  )}
-                </div>
-                <span
-                  className={
-                    trade.pnl === null
-                      ? "text-neutral-500"
-                      : trade.pnl > 0
-                        ? "text-emerald-600"
-                        : trade.pnl < 0
-                          ? "text-red-600"
-                          : "text-neutral-500"
-                  }
+          {trades.map((trade) => {
+            const pct = percentPnl(trade);
+
+            return (
+              <li key={trade.id}>
+                <Link
+                  href={`/journal/${trade.id}`}
+                  className="flex items-center justify-between gap-4 py-3 text-sm hover:opacity-70"
                 >
-                  {trade.pnl === null
-                    ? "open"
-                    : trade.pnl.toLocaleString(undefined, {
-                        style: "currency",
-                        currency: "USD",
-                      })}
-                </span>
-              </Link>
-            </li>
-          ))}
+                  <div className="flex flex-col gap-0.5">
+                    <div className="flex items-center gap-2">
+                      <span className="font-medium">{trade.symbol}</span>
+                      {trade.environment === "demo" && (
+                        <span className="rounded-full bg-amber-100 px-2 py-0.5 text-xs text-amber-700 dark:bg-amber-900/40 dark:text-amber-400">
+                          demo
+                        </span>
+                      )}
+                      {trade.strategy && (
+                        <span className="rounded-full bg-neutral-100 px-2 py-0.5 text-xs text-neutral-600 dark:bg-neutral-800 dark:text-neutral-300">
+                          {trade.strategy}
+                        </span>
+                      )}
+                    </div>
+                    <span className="capitalize text-neutral-500">
+                      {trade.side} · {trade.quantity}
+                    </span>
+                    <span className="text-xs text-neutral-500">
+                      Entry: {formatPrice(trade.entry_price)}
+                      {trade.exit_price !== null && (
+                        <> → Exit: {formatPrice(trade.exit_price)}</>
+                      )}
+                    </span>
+                  </div>
+                  <span
+                    className={
+                      pct === null
+                        ? "text-neutral-500"
+                        : pct > 0
+                          ? "text-emerald-600"
+                          : pct < 0
+                            ? "text-red-600"
+                            : "text-neutral-500"
+                    }
+                  >
+                    {pct === null ? "open" : `${pct > 0 ? "+" : ""}${pct.toFixed(2)}%`}
+                  </span>
+                </Link>
+              </li>
+            );
+          })}
         </ul>
       )}
     </main>
