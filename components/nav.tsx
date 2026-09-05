@@ -17,6 +17,9 @@ export async function Nav() {
       <Link href="/journal/new" className="text-neutral-500 hover:text-neutral-900 dark:hover:text-neutral-100">
         New Trade
       </Link>
+      <Link href="/markets" className="text-neutral-500 hover:text-neutral-900 dark:hover:text-neutral-100">
+        Markets
+      </Link>
       <Link href="/strategy" className="text-neutral-500 hover:text-neutral-900 dark:hover:text-neutral-100">
         Strategy
       </Link>

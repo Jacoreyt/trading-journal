@@ -8,6 +8,7 @@ export type InsightKind =
   | "game_plan_daily"
   | "game_plan_weekly";
 export type EnvironmentFilter = "all" | "demo" | "live";
+export type AssetClass = "crypto" | "forex" | "futures";
 
 export interface Database {
   public: {
@@ -142,6 +143,42 @@ export interface Database {
         Update: Partial<Database["public"]["Tables"]["tradelocker_instrument_specs"]["Row"]>;
         Relationships: [];
       };
+      watchlist_items: {
+        Row: {
+          id: string;
+          user_id: string;
+          asset_class: AssetClass;
+          symbol: string;
+          label: string;
+          created_at: string;
+        };
+        Insert: Partial<Database["public"]["Tables"]["watchlist_items"]["Row"]> & {
+          user_id: string;
+          asset_class: AssetClass;
+          symbol: string;
+          label: string;
+        };
+        Update: Partial<Database["public"]["Tables"]["watchlist_items"]["Row"]>;
+        Relationships: [];
+      };
+      market_quote_cache: {
+        Row: {
+          asset_class: AssetClass;
+          symbol: string;
+          price: number;
+          percent_change: number;
+          volume: number | null;
+          updated_at: string;
+        };
+        Insert: Partial<Database["public"]["Tables"]["market_quote_cache"]["Row"]> & {
+          asset_class: AssetClass;
+          symbol: string;
+          price: number;
+          percent_change: number;
+        };
+        Update: Partial<Database["public"]["Tables"]["market_quote_cache"]["Row"]>;
+        Relationships: [];
+      };
     };
     Views: Record<string, never>;
     Functions: Record<string, never>;
@@ -152,3 +189,4 @@ export type Trade = Database["public"]["Tables"]["trades"]["Row"];
 export type BrokerConnection = Database["public"]["Tables"]["broker_connections"]["Row"];
 export type AiFeedback = Database["public"]["Tables"]["ai_feedback"]["Row"];
 export type AiInsight = Database["public"]["Tables"]["ai_insights"]["Row"];
+export type WatchlistItem = Database["public"]["Tables"]["watchlist_items"]["Row"];
